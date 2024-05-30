@@ -1,6 +1,7 @@
 from knn import train_knn_classifier
 from knn import predict
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import json
 
 app = Flask(__name__)
@@ -32,3 +33,4 @@ def prediction_service():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    CORS(app, resources={r"/predict": {"origins": "http://localhost:4200"}})
