@@ -1,6 +1,6 @@
-import * as tf from '@tensorflow/tfjs';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
@@ -10,39 +10,33 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 export class AppComponent implements OnInit {
   title = 'knn-size';
   userDataForm: FormGroup;
-  model: tf.LayersModel;
+  http: HttpClient;
 
-  constructor(private fb: FormBuilder, private ml: tf.LayersModel) {
+  constructor(private fb: FormBuilder, private httpClient: HttpClient) {
     this.userDataForm = this.fb.group({
       weight: ['', [Validators.required, Validators.min(1)]],
       age: ['', [Validators.required, Validators.min(0)]],
       height: ['', [Validators.required, Validators.min(1)]]
     });
-
-    this.model = this.ml;
+    this.http = this.httpClient;
   }
 
   async ngOnInit(): Promise<void> {
-    this.model = await tf.loadLayersModel('path/to/your/model.json');
   }
 
   onSubmit(): void {
     if (this.userDataForm.valid) {
       console.log(this.userDataForm.value);
-    } else {
-      console.error('Form is invalid');
+      this.getPrediction();
     }
   }
 
-  async predict(weight: number, age: number, height: number): Promise<number> {
-    const normalizedWeight = weight / 100;
-    const normalizedAge = age / 100;
-    const normalizedHeight = height / 100;
-  
-    const inputData = tf.tensor2d([[normalizedWeight, normalizedAge, normalizedHeight]]);
-  
-    const prediction = this.model.predict(inputData) as tf.Tensor<tf.Rank>;
-  
-    return prediction.dataSync()[0];
+  getPrediction(): void {
+      this.http.post('http://localhost:5000/predict', this.userDataForm.value)
+      .subscribe((data: any) => {
+        console.log(data);
+        alert("Tall: "+data.size_predicted);
+      });
   }
+
 }
